@@ -1,6 +1,7 @@
 extends Actor
 class_name Character
 
+
 #### ACCESSORS ####
 
 
@@ -45,7 +46,6 @@ func _interaction_attempt() -> bool:
 #### SIGNAL RESPONSES ####
 
 
-
 func _on_state_changed(new_state: Object) -> void:
 	if new_state.name == "Attack":
 		if _interaction_attempt():
@@ -54,4 +54,6 @@ func _on_state_changed(new_state: Object) -> void:
 	._on_state_changed(new_state)
 
 
-
+func _on_hp_changed(new_hp: int) -> void:
+	EVENTS.emit_signal("character_hp_changed", new_hp)
+	._on_hp_changed(new_hp)
