@@ -8,6 +8,10 @@ class_name Character
 #### BUILT-IN ####
 
 
+func _ready() -> void:
+	var __ = connect("hp_changed", self, "_on_hp_changed")
+
+
 func _input(_event: InputEvent) -> void:
 	# Update the direction
 	var dir = Vector2(
@@ -56,4 +60,3 @@ func _on_state_changed(new_state: Object) -> void:
 
 func _on_hp_changed(new_hp: int) -> void:
 	EVENTS.emit_signal("character_hp_changed", new_hp)
-	._on_hp_changed(new_hp)

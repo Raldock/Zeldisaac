@@ -1,6 +1,7 @@
 extends KinematicBody2D
 class_name Actor
 
+onready var tween = get_node("Tween")
 onready var state_machine = get_node("StateMachine")
 onready var animated_sprite = get_node("AnimatedSprite")
 onready var attack_hit_box = get_node("AttackHitBox")
@@ -22,7 +23,6 @@ onready var hp : int = max_hp setget set_hp, get_hp
 signal facing_direction_changed
 signal moving_direction_changed
 signal hp_changed(new_hp)
-signal died
 
 #### ACCESSORS ####
 
@@ -41,9 +41,11 @@ func get_moving_direction() -> Vector2:
 	return moving_direction
 
 func set_hp(value: int):
+	value = Maths.clampi(value, 0, max_hp)
 	if value != hp:
-		hp = Maths.clampi(value, 0, max_hp)
+		hp = value
 		emit_signal("hp_changed", hp)
+
 func get_hp() -> int: return hp
 
 
@@ -53,9 +55,9 @@ func _ready() -> void:
 	var __ = state_machine.connect("state_changed", self, "_on_state_changed")
 	__ = connect("facing_direction_changed", self, "_on_facing_direction_changed")
 	__ = connect("moving_direction_changed", self, "_on_moving_direction_changed")
-	__ = connect("hp_changed", self, "_on_hp_changed")
 	__ = animated_sprite.connect("animation_finished", self, "_on_AnimatedSprite_animation_finished")
 	__ = animated_sprite.connect("frame_changed", self, "_on_AnimatedSprite_frame_changed")
+
 
 #### LOGIC ####
 
@@ -92,6 +94,7 @@ func _attack_effect() -> void:
 		
 		if body.has_method("hurt"):
 			body.hurt(_compute_damage())
+			body.face_position(global_position)
 		
 		elif body.has_method("destroy"):
 			body.destroy()
@@ -107,26 +110,53 @@ func _update_attack_hitbox_direction() -> void:
 
 
 func hurt(damage: int) -> void:
+	state_machine.set_state("Hurt")
 	set_hp(hp - damage)
+	_hurt_feedback()
 
 
 func die() -> void:
-	emit_signal("died")
+	EVENTS.emit_signal("actor_died", self)
 	state_machine.set_state("Dead")
+
+
+func _hurt_feedback() -> void:
+	tween.interpolate_property(material, "shader_param/opacity", 0.0 , 1.0, 0.1)
+	tween.start()
+	
+	yield(tween, "tween_all_completed")
+	
+	tween.interpolate_property(material, "shader_param/opacity", 1.0 , 0.0, 0.1)
+	tween.start()
+
+
+func face_position(world_pos: Vector2) -> void:
+	var dir = global_position.direction_to(world_pos)
+	face_direction(dir)
+
+
+func face_direction(dir: Vector2) -> void:
+	if abs(dir.x) > abs(dir.y):
+		set_facing_direction(Vector2(sign(dir.x), 0))
+	else:
+		set_facing_direction(Vector2(0, sign(dir.y)))
 
 
 #### SIGNAL RESPONSES ####
 
-func _on_state_changed(new_state: Object) -> void:
+func _on_state_changed(_new_state: Object) -> void:
 	_update_animation()
-	
-	if new_state.name == "Dead":
-		emit_signal("died")
 
 
 func _on_AnimatedSprite_animation_finished() -> void:
 	if "Attack".is_subsequence_of(animated_sprite.get_animation()):
 		state_machine.set_state("Idle")
+	
+	elif "Hurt".is_subsequence_of(animated_sprite.get_animation()):
+		if hp == 0:
+			die()
+		else:
+			state_machine.set_state("Idle")
 
 
 func _on_facing_direction_changed() -> void:
@@ -156,8 +186,3 @@ func _on_AnimatedSprite_frame_changed() -> void:
 	if "Attack".is_subsequence_of(animated_sprite.get_animation()):
 		if animated_sprite.get_frame() == 1:
 			_attack_effect()
-
-
-func _on_hp_changed(new_hp: int) -> void:
-	if new_hp == 0:
-		die()
