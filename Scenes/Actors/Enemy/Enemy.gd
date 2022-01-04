@@ -100,7 +100,7 @@ func move_along_path(delta: float) -> void:
 			emit_signal("move_path_finished")
 		
 	else:
-		var __ = move_and_collide(dir * speed * delta)
+		var __ = move_and_slide(dir * speed)
 
 
 func die() -> void:

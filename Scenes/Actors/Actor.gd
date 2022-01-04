@@ -24,6 +24,7 @@ signal facing_direction_changed
 signal moving_direction_changed
 signal hp_changed(new_hp)
 
+
 #### ACCESSORS ####
 
 func set_facing_direction(value: Vector2) -> void:

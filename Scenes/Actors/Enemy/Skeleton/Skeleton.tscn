@@ -291,8 +291,6 @@ radius = 28.3384
 
 [node name="Skeleton" instance=ExtResource( 1 )]
 material = SubResource( 2 )
-collision_layer = 0
-collision_mask = 0
 speed = 170.0
 
 [node name="AnimatedSprite" parent="." index="0"]
@@ -350,8 +348,5 @@ shape = SubResource( 38 )
 
 [node name="CollisionShape2D" parent="AttackArea" index="0"]
 shape = SubResource( 39 )
-
-[node name="DebugPath" parent="." index="8"]
-visible = false
 
 [connection signal="state_changed" from="StateMachine" to="." method="_on_StateMachine_state_changed"]

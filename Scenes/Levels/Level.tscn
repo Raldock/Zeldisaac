@@ -662,7 +662,7 @@ __meta__ = {
 
 [node name="Skeleton" parent="." instance=ExtResource( 5 )]
 material = SubResource( 46 )
-position = Vector2( 509.097, 269 )
+position = Vector2( 496, 272 )
 
 [node name="Door" parent="." instance=ExtResource( 15 )]
 position = Vector2( 544, 32 )
